@@ -1,4 +1,4 @@
-package Task2;
+package task2;
 
 import java.io.IOException;
 import java.util.Random;
