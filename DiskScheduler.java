@@ -11,16 +11,35 @@ public class DiskScheduler {
     private int changeDirectionCount = 0;
     private String alg;
 
+    /**
+     * 
+     * @param alg     The scheduling algorithm to use between "fcfs", "sstf",
+     *                "scan", and "csan".
+     * @param initPos The initial position of the disk head.
+     * @param prevPos The previous position of the disk head.
+     */
     public DiskScheduler(String alg, int initPos, int prevPos) {
         this.alg = alg;
         this.initialPosition = initPos;
         this.previousPosition = prevPos;
     }
 
+    /**
+     * Returns the algorithms used by this DiskScheduler.
+     * 
+     * @return A string representing the scheduling algorithm.
+     */
     public String getAlg() {
         return this.alg;
     }
 
+    /**
+     * Reads a list of disk requests from the file specified in filepath and
+     * schedules processing.
+     * 
+     * @param filepath The path to the input file.
+     * @throws IOException
+     */
     public void scheduleFromFile(String filepath) throws IOException {
         // read input
         int[] input;
@@ -41,15 +60,36 @@ public class DiskScheduler {
 
         System.out.println("Head movement count: " + headMovementCount);
         System.out.println("Direction change count: " + changeDirectionCount);
+
+        // reset counters
+        headMovementCount = 0;
+        changeDirectionCount = 0;
     }
 
+    /**
+     * Reads requests from array input and schedules processing.
+     * 
+     * @param input An array of integers representing the disk requests.
+     */
     public void scheduleFromArray(int[] input) {
         schedule(input);
 
         System.out.println("Head movement count: " + headMovementCount);
         System.out.println("Direction change count: " + changeDirectionCount);
+
+        // reset counters
+        headMovementCount = 0;
+        changeDirectionCount = 0;
     }
 
+    /**
+     * Determines which scheduling algorithm to use and returns the array
+     * containing the requests in the order they were processed.
+     *
+     * @param input An array of integers representing the disk requests.
+     * @return An array of integers representing the requests in the order they were
+     *         processed.
+     */
     private int[] schedule(int[] input) {
         switch (alg) {
             case "fcfs":
@@ -65,6 +105,12 @@ public class DiskScheduler {
         }
     }
 
+    /**
+     * Schedule using the first come first serve algorithm.
+     * 
+     * @param requests The array of disk requests.
+     * @return An array of disk requests in the order they were processed.
+     */
     private int[] fcfs(int[] requests) {
         int direction = previousPosition <= initialPosition ? 1 : -1;
         int previous = initialPosition;
@@ -81,6 +127,12 @@ public class DiskScheduler {
         return requests;
     }
 
+    /**
+     * Schedule using the shortest seek time first (SSTF) algorithm.
+     * 
+     * @param requests The array of disk requests.
+     * @return An array of disk requests in the order they were processed.
+     */
     private int[] sstf(int[] requests) {
         int[] results = new int[requests.length];
         for (int i = 0; i < results.length; i++) {
@@ -129,6 +181,12 @@ public class DiskScheduler {
         return results;
     }
 
+    /**
+     * Schedule using the SCAN (elevator) algorithm.
+     * 
+     * @param requests The array of disk requests.
+     * @return An array of disk requests in the order they were processed.
+     */
     private int[] scan(int[] requests) {
         ArrayList<Integer> requestsList = new ArrayList<>();
         for (Integer req : requests) {
@@ -226,6 +284,12 @@ public class DiskScheduler {
 
     }
 
+    /**
+     * Schedule using the CSCAN (circular SCAN) algorithm.
+     * 
+     * @param requests The array of disk requests.
+     * @return An array of disk requests in the order they were processed.
+     */
     private int[] cscan(int[] requests) {
         ArrayList<Integer> requestsList = new ArrayList<>();
         for (Integer req : requests) {
