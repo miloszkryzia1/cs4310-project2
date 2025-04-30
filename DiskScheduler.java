@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
 import java.io.File;
 import java.io.IOException;
@@ -18,48 +17,35 @@ public class DiskScheduler {
         this.previousPosition = prevPos;
     }
 
-    public void scheduleFromInput(String filepath, int n) throws IOException {
+    public String getAlg() {
+        return this.alg;
+    }
+
+    public void scheduleFromFile(String filepath) throws IOException {
         // read input
-        int[] input = new int[n];
+        int[] input;
         Scanner fileScanner = new Scanner(new File(filepath));
-        int i = 0;
+        ArrayList<Integer> cylinderList = new ArrayList<>();
         while (fileScanner.hasNextInt()) {
-            input[i++] = fileScanner.nextInt();
+            cylinderList.add(fileScanner.nextInt());
         }
         fileScanner.close();
-
-        int[] results = schedule(input);
-        System.out.print("Result: ");
-        for (int res : results) {
-            System.out.print(res + ", ");
+        input = new int[cylinderList.size()];
+        int i = 0;
+        while (i < input.length) {
+            input[i] = cylinderList.get(i);
+            i++;
         }
-        System.out.println();
+
+        schedule(input);
+
         System.out.println("Head movement count: " + headMovementCount);
         System.out.println("Direction change count: " + changeDirectionCount);
     }
 
-    public void scheduleRandom(int n) {
-        int[] input = new int[n];
+    public void scheduleFromArray(int[] input) {
+        schedule(input);
 
-        Random random = new Random();
-
-        for (int i = 0; i < n; i++) {
-            input[i] = random.nextInt(5000);
-        }
-
-        System.out.print("Requests: ");
-        for (int in : input) {
-            System.out.print(in + ", ");
-        }
-        System.out.println();
-        System.out.println();
-
-        int[] results = schedule(input);
-        System.out.print("Result: ");
-        for (int res : results) {
-            System.out.print(res + ", ");
-        }
-        System.out.println();
         System.out.println("Head movement count: " + headMovementCount);
         System.out.println("Direction change count: " + changeDirectionCount);
     }
@@ -132,7 +118,6 @@ public class DiskScheduler {
             if (((next > previous) && direction == -1) || ((next < previous) && direction == 1)) {
                 direction *= -1;
                 changeDirectionCount++;
-                System.out.println("Direction change between " + previous + " and " + next);
             }
 
             // add to results and continue
