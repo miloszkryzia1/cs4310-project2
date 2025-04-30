@@ -67,7 +67,7 @@ public class DiskScheduler {
     private int[] schedule(int[] input) {
         switch (alg) {
             case "fcfs":
-                return input;
+                return fcfs(input);
             case "sstf":
                 return sstf(input);
             case "scan":
@@ -77,6 +77,22 @@ public class DiskScheduler {
             default:
                 return input;
         }
+    }
+
+    private int[] fcfs(int[] requests) {
+        int direction = previousPosition <= initialPosition ? 1 : -1;
+        int previous = initialPosition;
+        for (int req : requests) {
+            if (previous != req) {
+                headMovementCount++;
+            }
+            if (((req > previous) && direction == -1) || ((req < previous) && direction == 1)) {
+                direction *= -1;
+                changeDirectionCount++;
+            }
+            previous = req;
+        }
+        return requests;
     }
 
     private int[] sstf(int[] requests) {
@@ -169,6 +185,7 @@ public class DiskScheduler {
             }
         }
 
+        // check if direction change needed before first request
         if (((requestsNew[i] > initialPosition) && direction == -1)
                 || ((requestsNew[i] < initialPosition) && direction == 1)) {
 
@@ -225,7 +242,78 @@ public class DiskScheduler {
     }
 
     private int[] cscan(int[] requests) {
-        return new int[] {};
+        ArrayList<Integer> requestsList = new ArrayList<>();
+        for (Integer req : requests) {
+            requestsList.add(req);
+        }
+        requestsList.sort(null);
+        Integer[] requestsNew = new Integer[requestsList.size()]; // sorted array of requests
+        requestsList.toArray(requestsNew);
+
+        int[] results = new int[requests.length];
+        for (int i = 0; i < results.length; i++) {
+            results[i] = Integer.MIN_VALUE;
+        }
+        int nextResultIndex = 0;
+        int direction = previousPosition <= initialPosition ? 1 : -1;
+        int previous = initialPosition;
+
+        final int MAX_REQUEST_INDEX = requestsNew.length - 1;
+        // find starting request index
+        int i = 0;
+        if ((initialPosition > requestsNew[requestsNew.length - 1]) || (initialPosition < requestsNew[0])) {
+            i = direction == 1 ? 0 : requestsNew.length - 1;
+        } else {
+            while (requestsNew[i] < initialPosition) {
+                i++;
+            }
+            if (direction == -1) {
+                i--;
+            }
+        }
+
+        while (contains(results, Integer.MIN_VALUE)) {
+            if (direction == 1) {
+                if (previous != requestsNew[i]) {
+                    headMovementCount++;
+                }
+                results[nextResultIndex++] = requestsNew[i];
+                previous = requestsNew[i];
+                requestsNew[i] = Integer.MAX_VALUE;
+                i++;
+                if (i > MAX_REQUEST_INDEX) {
+                    // switch to lowest index
+                    if (!contains(results, Integer.MIN_VALUE)) {
+                        break;
+                    }
+                    i = 0;
+                    while (requestsNew[i + 1] != Integer.MAX_VALUE) {
+                        i++;
+                    }
+                }
+            }
+            if (direction == -1) {
+                if (previous != requestsNew[i]) {
+                    headMovementCount++;
+                }
+                results[nextResultIndex++] = requestsNew[i];
+                previous = requestsNew[i];
+                requestsNew[i] = Integer.MAX_VALUE;
+                i--;
+                if (i < 0) {
+                    // switch to highest index
+                    if (!contains(results, Integer.MIN_VALUE)) {
+                        break;
+                    }
+                    i = requestsNew.length - 1;
+                    while (requestsNew[i] == Integer.MAX_VALUE) {
+                        i--;
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 
     // helper
