@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.io.File;
@@ -37,12 +38,12 @@ public class DiskScheduler {
         System.out.println("Direction change count: " + changeDirectionCount);
     }
 
-    public void scheduleRandom() {
-        int[] input = new int[1000];
+    public void scheduleRandom(int n) {
+        int[] input = new int[n];
 
         Random random = new Random();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < n; i++) {
             input[i] = random.nextInt(5000);
         }
 
@@ -128,7 +129,99 @@ public class DiskScheduler {
     }
 
     private int[] scan(int[] requests) {
-        return new int[] {};
+        ArrayList<Integer> requestsList = new ArrayList<>();
+        for (Integer req : requests) {
+            requestsList.add(req);
+        }
+        requestsList.sort(null);
+        Integer[] requestsNew = new Integer[requestsList.size()]; // sorted array of requests
+        requestsList.toArray(requestsNew);
+
+        int[] results = new int[requests.length];
+        for (int i = 0; i < results.length; i++) {
+            results[i] = Integer.MIN_VALUE;
+        }
+        int nextResultIndex = 0;
+        int direction = previousPosition <= initialPosition ? 1 : -1;
+        int previous = initialPosition;
+
+        final int MAX_REQUEST_INDEX = requestsNew.length - 1;
+        // find starting request index
+        int i = 0;
+        if (initialPosition > requestsNew[requestsNew.length - 1]) {
+            i = requestsNew.length - 1;
+            if (direction == 1) {
+                direction *= -1;
+                changeDirectionCount++;
+            }
+        } else if (initialPosition < requestsNew[0]) {
+            i = 0;
+            if (direction == -1) {
+                direction *= -1;
+                changeDirectionCount++;
+            }
+        } else {
+            while (requestsNew[i] < initialPosition) {
+                i++;
+            }
+            if (direction == -1) {
+                i--;
+            }
+        }
+
+        if (((requestsNew[i] > initialPosition) && direction == -1)
+                || ((requestsNew[i] < initialPosition) && direction == 1)) {
+
+            changeDirectionCount++;
+        }
+
+        while (contains(results, Integer.MIN_VALUE)) {
+            if (direction == 1) {
+                if (previous != requestsNew[i]) {
+                    headMovementCount++;
+                }
+                results[nextResultIndex++] = requestsNew[i];
+                previous = requestsNew[i];
+                requestsNew[i] = Integer.MAX_VALUE;
+                i++;
+                if (i > MAX_REQUEST_INDEX) {
+                    // change direction and move to the next request
+                    if (!contains(results, Integer.MIN_VALUE)) {
+                        break;
+                    }
+                    direction *= -1;
+                    changeDirectionCount++;
+                    i = 0;
+                    while (requestsNew[i + 1] != Integer.MAX_VALUE) {
+                        i++;
+                    }
+                }
+            }
+            if (direction == -1) {
+                if (previous != requestsNew[i]) {
+                    headMovementCount++;
+                }
+                results[nextResultIndex++] = requestsNew[i];
+                previous = requestsNew[i];
+                requestsNew[i] = Integer.MAX_VALUE;
+                i--;
+                if (i < 0) {
+                    // change direction and move to next request
+                    if (!contains(results, Integer.MIN_VALUE)) {
+                        break;
+                    }
+                    direction *= -1;
+                    changeDirectionCount++;
+                    i = 0;
+                    while (requestsNew[i] == Integer.MAX_VALUE) {
+                        i++;
+                    }
+                }
+            }
+        }
+
+        return results;
+
     }
 
     private int[] cscan(int[] requests) {
